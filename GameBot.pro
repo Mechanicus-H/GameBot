@@ -1,0 +1,18 @@
+#-------------------------------------------------
+#
+# Project created by QtCreator 2018-10-16T23:45:55
+#
+#-------------------------------------------------
+
+QT       += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = GameBot
+TEMPLATE = app
+
+
+SOURCES += main.cpp\
+        gamebot.cpp
+
+HEADERS  += gamebot.h
