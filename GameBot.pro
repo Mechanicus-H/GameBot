@@ -13,6 +13,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        gamebot.cpp
+        gamebot.cpp \
+    action.cpp
 
-HEADERS  += gamebot.h
+HEADERS  += gamebot.h \
+    action.h
