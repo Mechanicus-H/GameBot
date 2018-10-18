@@ -4,7 +4,9 @@ GameBot::GameBot(QWidget *parent)
     : QWidget(parent)
 {
     isRecord=false;
+    isExec=false;
     startTimer(2);
+    timer=0;
 
     resize(300, 75);
 
@@ -20,7 +22,7 @@ GameBot::GameBot(QWidget *parent)
     stopRecord=new QPushButton("Stop Record");
     connect(stopRecord, SIGNAL(clicked()), this, SLOT(slotStopRecord()));
 
-    startProgram=new QPushButton("Start Program");
+    startProgram=new QPushButton("Start/Stop Program");
     connect(startProgram, SIGNAL(clicked()), this, SLOT(slotStartProgram()));
 
     QHBoxLayout *box=new QHBoxLayout;
@@ -33,6 +35,7 @@ GameBot::GameBot(QWidget *parent)
     Vbox->addWidget(startRecord);
     Vbox->addWidget(stopRecord);
     Vbox->addWidget(startProgram);
+    Vbox->addWidget(winProgStatus);
 
     setLayout(Vbox);
 
@@ -75,6 +78,7 @@ void GameBot::timerEvent(QTimerEvent *te)
 {
     cursorPosition=cursor().pos();
 
+    timer+=2;
     slotShowMouseState();
 
 
@@ -91,28 +95,64 @@ void GameBot::mouseMoveEvent(QMouseEvent *me)
 //-----------------------------------------------
 void GameBot::keyPressEvent(QKeyEvent *ke)
 {
-    int ms=QTime::currentTime().msec()-lastClick.msec();
-    if(ke->key()==Qt::Key_K)
+    if(isRecord)
     {
-        program.push_back(Action(act_type::wait, ms));
-        program.push_back(Action(act_type::left_click, cursorPosition));
-    }
-    else if(ke->key()==Qt::Key_L)
-    {
-        program.push_back(Action(act_type::wait, ms));
-        program.push_back(Action(act_type::right_click, cursorPosition));
-    }
-    else if(ke->key()==Qt::Key_E && isRecord)
-    {
-        isRecord=false;
-        winProgStatus->append(
-                    "Program size: "+
-                    QString::number(program.size())+
-                    "\n"
-                    );
-    }
+        int ms= timer;
+        timer=0;
 
-    lastClick=QTime::currentTime();
+
+        if(ke->key()==Qt::Key_K)
+        {
+            program.push_back(Action(act_type::wait, ms));
+            program.push_back(Action(act_type::left_click, cursorPosition));
+
+            winProgStatus->append(
+                        "Wait: "+ QString::number(ms)+
+                        "\nLeft click, x: "+QString::number(cursorPosition.x())
+                        + ", y: " +QString::number(cursorPosition.y())
+                        );
+        }
+        else if(ke->key()==Qt::Key_L)
+        {
+            program.push_back(Action(act_type::wait, ms));
+            program.push_back(Action(act_type::right_click, cursorPosition));
+
+            winProgStatus->append(
+                        "Wait: "+ QString::number(ms)+
+                        "\nRight click, x: "+QString::number(cursorPosition.x())
+                        + ", y: " +QString::number(cursorPosition.y())
+                        );
+
+        }
+        else if(ke->key()==Qt::Key_D)
+        {
+            program.push_back(Action(act_type::wait, ms));
+            program.push_back(Action(act_type::drag, cursorPosition, QPoint(0,0)));
+
+            winProgStatus->append(
+                        "Wait: "+ QString::number(ms)+
+                        "\nDrag start, x: "+QString::number(cursorPosition.x())
+                        + ", y: " +QString::number(cursorPosition.y())
+                        );
+        }
+        else if(ke->key()==Qt::Key_S)
+        {
+            program.last().setTarget(cursorPosition);
+
+            winProgStatus->append(
+                        "Wait: "+ QString::number(ms)+
+                        "\nDrag stop, x: "+QString::number(cursorPosition.x())
+                        + ", y: " +QString::number(cursorPosition.y())
+                        );
+        }
+        else if(ke->key()==Qt::Key_E && ke->modifiers()==Qt::CTRL && isExec)
+        {
+            isExec=false;
+            winProgStatus->append( "Program execution stop" );
+        }
+
+        lastClick=QTime::currentTime();
+    }
 }
 //-----------------------------------------------
 
@@ -120,6 +160,9 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
 //-----------------------------------------------
 void GameBot::slotStartRecord()
 {
+    isRecord=true;
+    program.clear();
+    timer=0;
     winProgStatus->append(
                 "Start record\n"
                 );
@@ -128,13 +171,57 @@ void GameBot::slotStartRecord()
 //-----------------------------------------------
 void GameBot::slotStopRecord()
 {
+    isRecord=false;
+    winProgStatus->append(
+                "Stop record\nProgram size: "+
+                QString::number(program.size())+
+                "\n"
+                );
 
 }
 //-----------------------------------------------
 void GameBot::slotStartProgram()
 {
+    if(isRecord) return;
+
+    if(!isExec)
+    {
+        isExec=true;
+        const int size=program.size();
+        while(isExec)
+        {
+            for(int i=0; i<size; i++)
+                program[i].exec();
+        }
+    }
 
 }
+
+//-----------------------------------------------
+// Utilites
+QTime operator-(const QTime& t1, const QTime& t2)
+{
+    QTime result;
+    int
+            h=t1.hour()-t2.hour(),
+            m=t1.minute()-t2.minute(),
+            s=t1.second()-t2.second(),
+            ms=t1.msec()-t2.msec();
+    result.setHMS(h,m,s,ms);
+    return result;
+}
+
+int toMsecs(const QTime& time)
+{
+    int ms= time.second()*1000 + time.msec();
+    ms+=time.minute()*60*1000;
+
+    return ms;
+}
+
+
+
+
 
 
 

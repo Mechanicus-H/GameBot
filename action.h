@@ -13,7 +13,8 @@ namespace act_type
  int const
         wait=0,
         left_click=1,
-        right_click=2;
+        right_click=2,
+        drag=3;
 }
 
 
@@ -22,15 +23,22 @@ class Action
 private:
     int type;
     QPoint target;
+    QPoint start;
     int ms;
     QCursor *cursor;
 public:
     Action(){}
     explicit Action(int _type, int _seconds); // for wait
     explicit Action(int _type, QPoint _target); // for click
-    void moveToTarget();
+    explicit Action(int _type, QPoint _start, QPoint _target); // for drag
+    void moveToTarget(); // большой костыль
+    void moveToStart();  // позже надо поправить
     void exec();
     void setCursor(QCursor *c);
+    void setTarget(QPoint p)
+    {
+        target=p;
+    }
 
 signals:
 

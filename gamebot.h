@@ -12,6 +12,8 @@ private:
     QPoint cursorPosition;
     QTime lastClick;
 
+    uint timer;
+
     QLabel *lblX;
     QLabel *lblY;
     QLabel *lblClick;
@@ -21,6 +23,8 @@ private:
     QPushButton *startProgram;
 
     bool isRecord;
+    bool isExec;
+
     QVector<Action> program;
 
 public:
@@ -40,5 +44,8 @@ public slots:
     void slotStopRecord();
     void slotStartProgram();
 };
+
+QTime operator-(const QTime& t1, const QTime& t2);
+int toMsecs(const QTime& time);
 
 #endif // GAMEBOT_H
