@@ -9,6 +9,8 @@ GameBot::GameBot(QWidget *parent)
     timer=0;
 
     resize(300, 75);
+    setWindowFlags(Qt::WindowStaysOnTopHint);
+
 
     lblX=new QLabel;
     lblY=new QLabel;
@@ -22,7 +24,7 @@ GameBot::GameBot(QWidget *parent)
     stopRecord=new QPushButton("Stop Record");
     connect(stopRecord, SIGNAL(clicked()), this, SLOT(slotStopRecord()));
 
-    startProgram=new QPushButton("Start/Stop Program");
+    startProgram=new QPushButton("Start Program");
     connect(startProgram, SIGNAL(clicked()), this, SLOT(slotStartProgram()));
 
     QHBoxLayout *box=new QHBoxLayout;
@@ -68,11 +70,7 @@ void GameBot::slotShowMouseState()
     slotSetClick(lastClick);
 }
 //-----------------------------------------------
-void GameBot::focusOutEvent(QFocusEvent *fe)
-{
-    this->activateWindow();
-    QWidget::focusOutEvent(fe);
-}
+
 //-----------------------------------------------
 void GameBot::timerEvent(QTimerEvent *te)
 {
@@ -140,8 +138,7 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
             program.last().setTarget(cursorPosition);
 
             winProgStatus->append(
-                        "Wait: "+ QString::number(ms)+
-                        "\nDrag stop, x: "+QString::number(cursorPosition.x())
+                        "Drag stop, x: "+QString::number(cursorPosition.x())
                         + ", y: " +QString::number(cursorPosition.y())
                         );
         }
@@ -164,7 +161,7 @@ void GameBot::slotStartRecord()
     program.clear();
     timer=0;
     winProgStatus->append(
-                "Start record\n"
+                "Start record"
                 );
 
 }
@@ -174,27 +171,30 @@ void GameBot::slotStopRecord()
     isRecord=false;
     winProgStatus->append(
                 "Stop record\nProgram size: "+
-                QString::number(program.size())+
-                "\n"
+                QString::number(program.size())
                 );
 
 }
 //-----------------------------------------------
 void GameBot::slotStartProgram()
 {
-    if(isRecord) return;
+//    if(isRecord) return;
 
-    if(!isExec)
-    {
-        isExec=true;
-        const int size=program.size();
-        while(isExec)
-        {
-            for(int i=0; i<size; i++)
-                program[i].exec();
-        }
-    }
+    qDebug() << "Start";
 
+    winProgStatus->append(
+                "Start program "+
+                QTime::currentTime().toString("hh:mm:ss")
+                );
+
+     isExec=true;
+     const int size=program.size();
+     while(isExec)
+     {
+         for(int i=0; i<size; i++)
+             program[i].exec();
+         if(!isExec) return;
+     }
 }
 
 //-----------------------------------------------

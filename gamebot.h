@@ -32,7 +32,6 @@ public:
     ~GameBot();
 
     void timerEvent(QTimerEvent *te);
-    void focusOutEvent(QFocusEvent *fe);
     void mouseMoveEvent(QMouseEvent *me);
     void keyPressEvent(QKeyEvent *ke);
 public slots:

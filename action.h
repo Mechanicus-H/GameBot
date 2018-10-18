@@ -25,7 +25,7 @@ private:
     QPoint target;
     QPoint start;
     int ms;
-    QCursor *cursor;
+    QCursor cursor;
 public:
     Action(){}
     explicit Action(int _type, int _seconds); // for wait
@@ -34,7 +34,7 @@ public:
     void moveToTarget(); // большой костыль
     void moveToStart();  // позже надо поправить
     void exec();
-    void setCursor(QCursor *c);
+    void setCursor(QCursor c);
     void setTarget(QPoint p)
     {
         target=p;
