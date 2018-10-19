@@ -19,24 +19,40 @@ GameBot::GameBot(QWidget *parent)
     systemConsole=new QTextEdit;
     systemConsole->setReadOnly(true);
 
+
+
     startRecord=new QPushButton("Start record");
     connect(startRecord, SIGNAL(clicked()), this, SLOT(slotStartRecord()));
 
     stopRecord=new QPushButton("Stop Record");
     connect(stopRecord, SIGNAL(clicked()), this, SLOT(slotStopRecord()));
 
+    saveProgram=new QPushButton("Save Program");
+    loadProgram=new QPushButton("Load Program");
+
+
     startProgram=new QPushButton("Start Program");
     connect(startProgram, SIGNAL(clicked()), this, SLOT(slotStartProgram()));
 
-    QHBoxLayout *box=new QHBoxLayout;
-    box->addWidget(lblX);
-    box->addWidget(lblY);
-    box->addWidget(lblClick);
+    QHBoxLayout *line1=new QHBoxLayout;
+    QHBoxLayout *line2=new QHBoxLayout;
+    QHBoxLayout *line3=new QHBoxLayout;
+
+    line1->addWidget(lblX);
+    line1->addWidget(lblY);
+    line1->addWidget(lblClick);
+
+    line2->addWidget(startRecord);
+    line2->addWidget(stopRecord);
+
+    line3->addWidget(saveProgram);
+    line3->addWidget(loadProgram);
 
     QVBoxLayout *Vbox=new QVBoxLayout;
-    Vbox->addLayout(box);
-    Vbox->addWidget(startRecord);
-    Vbox->addWidget(stopRecord);
+    Vbox->addLayout(line1);
+    Vbox->addLayout(line2);
+    Vbox->addLayout(line3);
+
     Vbox->addWidget(startProgram);
     Vbox->addWidget(systemConsole);
 
@@ -98,7 +114,9 @@ void GameBot::slotExecuteAction()
         moveTo(act.begin);
         mouse_event(MOUSEEVENTF_LEFTDOWN,
                     act.begin.x(), act.begin.y(), 0, 0);
+
         moveTo(act.target);
+        Sleep(5);
         mouse_event(MOUSEEVENTF_LEFTUP,
                     act.target.x(), act.target.y(), 0, 0);
     }
@@ -123,6 +141,16 @@ void GameBot::timerEvent(QTimerEvent *te)
 //-----------------------------------------------
 void GameBot::keyPressEvent(QKeyEvent *ke)
 {
+    if(isExec)
+    {
+        if(ke->key()==Qt::Key_F8)
+        {
+            isExec=false;
+            systemConsole->append("Execute Stoped");
+        }
+    }
+
+
     if(isRecord)
     {
 
@@ -227,7 +255,7 @@ void GameBot::slotStopRecord()
 //-----------------------------------------------
 void GameBot::slotStartProgram()
 {
-    if(isRecord) return;
+    if(isRecord|| program.size()==0) return;
 
 
 
@@ -243,7 +271,8 @@ void GameBot::slotStartProgram()
 
 }
 
-//-----------------------------------------------
+//===============================================
+
 // Utilites
 QTime operator-(const QTime& t1, const QTime& t2)
 {

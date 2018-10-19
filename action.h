@@ -25,7 +25,7 @@ struct Action
     QPoint begin;
     QString text;
     int delay;
-    QVector<int> modifiers;
+    int modifiers;
 };
 
 // Utilites

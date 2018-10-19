@@ -22,6 +22,8 @@ private:
     QPushButton *startRecord;
     QPushButton *stopRecord;
     QPushButton *startProgram;
+    QPushButton *saveProgram;
+    QPushButton *loadProgram;
 
     bool isRecord;
     bool isExec;
