@@ -10,8 +10,8 @@ class GameBot : public QWidget
     Q_OBJECT
 private:
     QPoint cursorPosition;
-    QTime lastClick;
-    QTimer *t;
+    QTime programTime;
+    QTimer *actionDelayTimer;
 
     uint timer;
 
@@ -30,6 +30,8 @@ private:
 
     int curentAction;
 
+    int totalSec;
+
     QVector<Action> program;
 
 public:
@@ -38,13 +40,15 @@ public:
 
     void timerEvent(QTimerEvent *te);
     void keyPressEvent(QKeyEvent *ke);
+
     void moveTo(const QPoint& targ);
+    void computeTotalSec();
 
 public slots:
     void slotShowMouseState();
     void slotSetX(int x);
     void slotSetY(int y);
-    void slotSetClick(QTime time);
+    void slotSetStatus();
     void slotStartRecord();
     void slotStopRecord();
     void slotStartProgram();

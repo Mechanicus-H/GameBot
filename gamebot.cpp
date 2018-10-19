@@ -7,7 +7,7 @@ GameBot::GameBot(QWidget *parent)
     isExec=false;
     startTimer(2);
     timer=0;
-    t=new QTimer;
+    actionDelayTimer=new QTimer;
 
     resize(300, 75);
     setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -59,15 +59,16 @@ GameBot::GameBot(QWidget *parent)
     setLayout(Vbox);
 
 }
-
+//-----------------------------------------------
 GameBot::~GameBot()
 {
 
 }
 //-----------------------------------------------
-void GameBot::slotSetClick(QTime time)
+void GameBot::slotSetStatus()
 {
-    lblClick->setText("Last click: "+ time.toString("hh:mm:ss:zzz"));
+    lblClick->setText("Program size: " + QString::number(program.size())+
+                      ", time: " + programTime.toString("hh:mm:ss"));
 }
 //-----------------------------------------------
 void GameBot::slotSetX(int x)
@@ -84,7 +85,7 @@ void GameBot::slotShowMouseState()
 {
     slotSetX(cursorPosition.x());
     slotSetY(cursorPosition.y());
-    slotSetClick(lastClick);
+    slotSetStatus();
 }
 //-----------------------------------------------
 void GameBot::slotExecuteAction()
@@ -122,7 +123,7 @@ void GameBot::slotExecuteAction()
     }
     if(curentAction==program.size()-1) curentAction=0;
     else curentAction++;
-    t->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
+    actionDelayTimer->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
 }
 
 
@@ -203,8 +204,9 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
                 systemConsole->append(createMessage(program.last()));
             }
         }
+        computeTotalSec();
 
-        lastClick=QTime::currentTime();
+
     }
 }
 //-----------------------------------------------
@@ -227,13 +229,24 @@ void GameBot::moveTo(const QPoint &targ)
                 Sleep(2);
             }
 }
-
 //-----------------------------------------------
-
+void GameBot::computeTotalSec()
+{
+    float floatSec=0;
+    int size=program.size();
+    for(int i=0; i<size; i++)
+    {
+        floatSec+=float(program.at(i).delay)*0.001;
+    }
+    totalSec=int(floatSec);
+}
+//===============================================
 // SLOTS
 //-----------------------------------------------
 void GameBot::slotStartRecord()
 {
+    totalSec=0;
+
     isRecord=true;
     program.clear();
     timer=0;
@@ -246,6 +259,7 @@ void GameBot::slotStartRecord()
 void GameBot::slotStopRecord()
 {
     isRecord=false;
+    programTime=QTime(0,0).addSecs(totalSec);
     systemConsole->append(
                 "Stop record\nProgram size: "+
                 QString::number(program.size())
@@ -259,6 +273,7 @@ void GameBot::slotStartProgram()
 
 
 
+
     systemConsole->append(
                 "Start program "+
                 QTime::currentTime().toString("hh:mm:ss")
@@ -267,7 +282,7 @@ void GameBot::slotStartProgram()
 
      isExec=true;
      curentAction=0;
-     t->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
+     actionDelayTimer->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
 
 }
 
