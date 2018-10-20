@@ -25,11 +25,11 @@ struct Action
     QPoint begin;
     QString text;
     int delay;
-    int modifiers;
+    int modifier;
 };
 
 // Utilites
 
-
+QString toString(const Action& act);
 
 #endif // ACTION_H

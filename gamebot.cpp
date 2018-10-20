@@ -28,6 +28,8 @@ GameBot::GameBot(QWidget *parent)
     connect(stopRecord, SIGNAL(clicked()), this, SLOT(slotStopRecord()));
 
     saveProgram=new QPushButton("Save Program");
+    connect(saveProgram, SIGNAL(clicked()), this, SLOT(slotSave()));
+
     loadProgram=new QPushButton("Load Program");
 
 
@@ -57,7 +59,7 @@ GameBot::GameBot(QWidget *parent)
     Vbox->addWidget(systemConsole);
 
     setLayout(Vbox);
-
+    slotSetStatus();
 }
 //-----------------------------------------------
 GameBot::~GameBot()
@@ -65,67 +67,22 @@ GameBot::~GameBot()
 
 }
 //-----------------------------------------------
-void GameBot::slotSetStatus()
-{
-    lblClick->setText("Program size: " + QString::number(program.size())+
-                      ", time: " + programTime.toString("hh:mm:ss"));
-}
-//-----------------------------------------------
-void GameBot::slotSetX(int x)
-{
-    lblX->setText("X: " + QString::number(x));
-}
-//-----------------------------------------------
-void GameBot::slotSetY(int y)
-{
-    lblY->setText("Y: " + QString::number(y));
-}
-//-----------------------------------------------
-void GameBot::slotShowMouseState()
-{
-    slotSetX(cursorPosition.x());
-    slotSetY(cursorPosition.y());
-    slotSetStatus();
-}
-//-----------------------------------------------
-void GameBot::slotExecuteAction()
-{
-    if(isExec==false) return;
 
-    Action act=program.at(curentAction);
-
-    if(act.type==ACTION_MOVETO)
+void GameBot::saveToFile(const QString& fileName)
+{
+    QFile file(fileName);
+    if(file.open(QIODevice::WriteOnly))
     {
-        moveTo(act.target);
+        systemConsole->append("File: \""+fileName+"\" open");
+        QTextStream stream(&file);
+        for(int i=0; i<program.size(); i++)
+        {
+            stream << toString(program.at(i));
+        }
     }
-    else if(act.type==ACTION_LEFTCLICK)
-    {
-        moveTo(act.target);
-        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP,
-                    act.target.x(), act.target.y(), 0, 0);
-    }
-    else if(act.type==ACTION_RIGHTCLICK)
-    {
-        moveTo(act.target);
-        mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP,
-                    act.target.x(), act.target.y(), 0, 0);
-    }
-    else if(act.type==ACTION_DRAG)
-    {
-        moveTo(act.begin);
-        mouse_event(MOUSEEVENTF_LEFTDOWN,
-                    act.begin.x(), act.begin.y(), 0, 0);
-
-        moveTo(act.target);
-        Sleep(5);
-        mouse_event(MOUSEEVENTF_LEFTUP,
-                    act.target.x(), act.target.y(), 0, 0);
-    }
-    if(curentAction==program.size()-1) curentAction=0;
-    else curentAction++;
-    actionDelayTimer->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
+    file.close();
+    systemConsole->append("Program saved");
 }
-
 
 //-----------------------------------------------
 void GameBot::timerEvent(QTimerEvent *te)
@@ -158,7 +115,7 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
         int ms= timer;
         timer=0;
 
-        if(ke->key()==Qt::Key_Q) // Left
+        if(ke->key()==Qt::Key_7) // Left
         {
             Action act;
             act.type=ACTION_LEFTCLICK;
@@ -168,7 +125,7 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
 
             systemConsole->append(createMessage(act));
         }
-        else if(ke->key()==Qt::Key_W) // Right
+        else if(ke->key()==Qt::Key_9) // Right
         {
             Action act;
             act.type=ACTION_RIGHTCLICK;
@@ -178,7 +135,7 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
 
             systemConsole->append(createMessage(act));
         }
-        else if(ke->key()==Qt::Key_E) // Move to
+        else if(ke->key()==Qt::Key_8) // Move to
         {
             Action act;
             act.type=ACTION_MOVETO;
@@ -188,7 +145,7 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
 
             systemConsole->append(createMessage(act));
         }
-        else if(ke->key()==Qt::Key_A) // Start drag
+        else if(ke->key()==Qt::Key_4) // Start drag
         {
             Action act;
             act.type=ACTION_DRAG;
@@ -196,7 +153,7 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
             act.begin=cursorPosition;
             program.push_back(act);
         }
-        else if(ke->key()==Qt::Key_S)
+        else if(ke->key()==Qt::Key_6)
         {
             if(program.last().type==ACTION_DRAG)
             {
@@ -226,7 +183,7 @@ void GameBot::moveTo(const QPoint &targ)
                     position.setY( position.y()+incY );
 
                 curs.setPos(QApplication::screens().first(), position);
-                Sleep(2);
+                Sleep(1);
             }
 }
 //-----------------------------------------------
@@ -264,6 +221,7 @@ void GameBot::slotStopRecord()
                 "Stop record\nProgram size: "+
                 QString::number(program.size())
                 );
+    slotSetStatus();
 
 }
 //-----------------------------------------------
@@ -283,6 +241,84 @@ void GameBot::slotStartProgram()
      isExec=true;
      curentAction=0;
      actionDelayTimer->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
+
+}
+//-----------------------------------------------
+void GameBot::slotSetStatus()
+{
+    lblClick->setText("Program size: " + QString::number(program.size())+
+                      ", time: " + programTime.toString("hh:mm:ss"));
+}
+//-----------------------------------------------
+void GameBot::slotSetX(int x)
+{
+    lblX->setText("X: " + QString::number(x));
+}
+//-----------------------------------------------
+void GameBot::slotSetY(int y)
+{
+    lblY->setText("Y: " + QString::number(y));
+}
+//-----------------------------------------------
+void GameBot::slotShowMouseState()
+{
+    slotSetX(cursorPosition.x());
+    slotSetY(cursorPosition.y());
+//    slotSetStatus();
+}
+//-----------------------------------------------
+void GameBot::slotExecuteAction()
+{
+    if(isExec==false) return;
+
+    Action act=program.at(curentAction);
+
+    if(act.type==ACTION_MOVETO)
+    {
+        moveTo(act.target);
+    }
+    else if(act.type==ACTION_LEFTCLICK)
+    {
+        moveTo(act.target);
+        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP,
+                    act.target.x(), act.target.y(), 0, 0);
+    }
+    else if(act.type==ACTION_RIGHTCLICK)
+    {
+        moveTo(act.target);
+        mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP,
+                    act.target.x(), act.target.y(), 0, 0);
+    }
+    else if(act.type==ACTION_DRAG)
+    {
+        moveTo(act.begin);
+        Sleep(2);
+        mouse_event(MOUSEEVENTF_LEFTDOWN,
+                    act.begin.x(), act.begin.y(), 0, 0);
+
+        moveTo(act.target);
+        Sleep(2);
+        mouse_event(MOUSEEVENTF_LEFTUP,
+                    act.target.x(), act.target.y(), 0, 0);
+    }
+    if(curentAction==program.size()-1)
+    {
+        curentAction=0;
+        emit signalCycleEnd();
+        systemConsole->append("Cycle end: "+ QTime::currentTime().toString("hh:mm:ss"));
+    }
+    else curentAction++;
+    actionDelayTimer->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
+}
+//-----------------------------------------------
+void GameBot::slotSave()
+{
+    QString fileName=
+            QFileDialog::getSaveFileName(
+                this, "Save Program",
+                QString(), "*.bt"
+                );
+    saveToFile(fileName+".bt");
 
 }
 

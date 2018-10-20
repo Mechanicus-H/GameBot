@@ -40,9 +40,9 @@ public:
 
     void timerEvent(QTimerEvent *te);
     void keyPressEvent(QKeyEvent *ke);
-
     void moveTo(const QPoint& targ);
     void computeTotalSec();
+    void saveToFile(const QString& fileName);
 
 public slots:
     void slotShowMouseState();
@@ -53,6 +53,11 @@ public slots:
     void slotStopRecord();
     void slotStartProgram();
     void slotExecuteAction();
+    void slotSave();
+
+signals:
+    void signalCycleEnd();
+
 };
 
 QTime operator-(const QTime& t1, const QTime& t2);
