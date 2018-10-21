@@ -49,3 +49,4 @@ CMakeLists.txt.user*
 # other
 *.ico
 *.exe
+.bt
