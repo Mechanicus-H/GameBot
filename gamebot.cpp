@@ -31,7 +31,7 @@ GameBot::GameBot(QWidget *parent)
     connect(saveProgram, SIGNAL(clicked()), this, SLOT(slotSave()));
 
     loadProgram=new QPushButton("Load Program");
-
+    connect(loadProgram, SIGNAL(clicked()), this, SLOT(slotLoad()));
 
     startProgram=new QPushButton("Start Program");
     connect(startProgram, SIGNAL(clicked()), this, SLOT(slotStartProgram()));
@@ -197,6 +197,39 @@ void GameBot::computeTotalSec()
     }
     totalSec=int(floatSec);
 }
+//-----------------------------------------------
+void GameBot::loadFromFile(const QString &fileName)
+{
+    QFile file(fileName);
+
+    if(file.open(QIODevice::ReadOnly))
+    {
+        systemConsole->append("Read from file " + fileName);
+        program.clear();
+
+        QString data=file.readAll();
+        QStringList list=data.split("#");
+
+        for(int i=0; i<list.size(); i++)
+        {
+
+            if(list.at(i).size()<10) continue;
+//            qDebug() << QString::number(i);
+//            qDebug() << list.at(i);
+
+            Action act=fromString(list.at(i));
+            program.push_back(act);
+        }
+    }
+
+    systemConsole->append(
+                QTime::currentTime().toString("hh:mm:ss")+" "+
+                "Readed " + QString::number(program.size())+
+                " actions"
+                );
+    slotSetStatus();
+}
+
 //===============================================
 // SLOTS
 //-----------------------------------------------
@@ -318,10 +351,18 @@ void GameBot::slotSave()
                 this, "Save Program",
                 QString(), "*.bt"
                 );
-    saveToFile(fileName+".bt");
-
+    if(fileName.split('.').last()!="bt") fileName+=".bt";
+    saveToFile(fileName);
 }
-
+//-----------------------------------------------
+void GameBot::slotLoad()
+{
+    QString fileName=
+            QFileDialog::getOpenFileName(
+                this, "Load Program"
+                );
+    loadFromFile(fileName);
+}
 //===============================================
 
 // Utilites

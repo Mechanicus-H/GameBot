@@ -36,13 +36,14 @@ private:
 
 public:
     GameBot(QWidget *parent = 0);
-    ~GameBot();
+    virtual ~GameBot();
 
     void timerEvent(QTimerEvent *te);
     void keyPressEvent(QKeyEvent *ke);
     void moveTo(const QPoint& targ);
     void computeTotalSec();
     void saveToFile(const QString& fileName);
+    void loadFromFile(const QString& fileName);
 
 public slots:
     void slotShowMouseState();
@@ -54,6 +55,7 @@ public slots:
     void slotStartProgram();
     void slotExecuteAction();
     void slotSave();
+    void slotLoad();
 
 signals:
     void signalCycleEnd();

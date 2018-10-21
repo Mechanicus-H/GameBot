@@ -1,4 +1,6 @@
 #include "action.h"
+#include <algorithm>
+#include <QStringList>
 
 
 /*
@@ -27,6 +29,7 @@ QString toString(const Action &act)
     case ACTION_MOVETO: result+="ACTION_MOVETO"; break;
     case ACTION_DRAG: result+="ACTION_DRAG"; break;
     case ACTION_INPUTTEXT: result+="ACTION_INPUTTEXT"; break;
+    case ACTION_PRESSKEY: result+="ACTION_PRESSKEY"; break;
     default: return result; break;
     }
     result+="\n{\n";
@@ -54,4 +57,66 @@ QString toString(const Action &act)
 //    qDebug() << result;
     return result;
 
+}
+//-----------------------------------------------
+
+Action fromString(const QString& str)
+{
+    Action result;
+
+    QStringList list=str.split("\n");
+    list[0].remove(' ');
+//    qDebug() << list[0];
+
+    if(list.at(0) == "ACTION_WAIT") result.type=ACTION_WAIT;
+    else if(list.at(0) == "ACTION_LEFTCLICK") result.type=ACTION_LEFTCLICK;
+    else if(list.at(0) == "ACTION_RIGHTCLICK") result.type=ACTION_RIGHTCLICK;
+    else if(list.at(0) == "ACTION_MOVETO") result.type=ACTION_MOVETO;
+    else if(list.at(0) == "ACTION_DRAG") result.type=ACTION_DRAG;
+    else if(list.at(0) == "ACTION_INPUTTEXT") result.type=ACTION_INPUTTEXT;
+    else if(list.at(0) == "ACTION_PRESSKEY") result.type=ACTION_PRESSKEY;
+
+    QString workString=list[2];
+    QStringList workList=workString.split('(');
+    result.begin=pointFromString(workList.at(1));
+
+    workString=list[3];
+    workList=workString.split('(');
+    result.target=pointFromString(workList.at(1));
+
+    workString=list[4];
+    workList=workString.split('"');
+    result.text=workList.at(1);
+//    qDebug() << result.text;
+
+    workString=list[5];
+    workList=workString.split(' ');
+    result.delay=workList.at(1).toInt();
+//    qDebug() << workList[1] << result.delay;
+
+    workString=list[6];
+    workList=workString.split(' ');
+//    qDebug() << workList[1];
+    if(std::count(workList.begin(), workList.end(), "Alt")) result.modifier=Qt::Key_Alt;
+    else if(std::count(workList.begin(), workList.end(), "Ctrl")) result.modifier=Qt::Key_Control;
+    else if(std::count(workList.begin(), workList.end(), "Shift")) result.modifier=Qt::Key_Shift;
+    else if(std::count(workList.begin(), workList.end(), "Ctrl+Alt")) result.modifier=Qt::Key_AltGr;
+
+    return result;
+}
+//-----------------------------------------------
+QPoint pointFromString(const QString& str)
+{
+    QPoint result;
+
+    QStringList list=str.split(",");
+
+    list[0].remove(" "); list[1].remove(" ");
+    list[1].remove(")");
+
+    result.setX(list[0].toInt());
+    result.setY(list[1].toInt());
+//    qDebug() << "strX: " << list[0] << ", intX: " << result.x() ;
+//    qDebug() << "strY: " << list[1] << ", intY: " << result.y() ;
+    return result;
 }

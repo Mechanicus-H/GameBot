@@ -31,5 +31,7 @@ struct Action
 // Utilites
 
 QString toString(const Action& act);
+Action fromString(const QString& str);
+QPoint pointFromString(const QString& str);
 
 #endif // ACTION_H
