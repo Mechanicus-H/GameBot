@@ -3,20 +3,22 @@
 #include <QStringList>
 
 
-/*
-struct Action
-{
-    ACTION type;
-    QPoint target;
-    QPoint begin;
-    QString text;
-    int delay;
-    int modifiers;
-};
- */
+
 
 //-----------------------------------------------
+/*
+Выведет строчку вида:
 
+# ACTION_LEFTCLICK
+{
+begin(0, 0)
+target(1793, 198)
+text: ""
+delay: 1000
+modifier: None
+}
+
+*/
 QString toString(const Action &act)
 {
     QString result="# ";
@@ -66,6 +68,7 @@ Action fromString(const QString& str)
 
     QStringList list=str.split("\n");
     list[0].remove(' ');
+    list[0].remove('#');
 //    qDebug() << list[0];
 
     if(list.at(0) == "ACTION_WAIT") result.type=ACTION_WAIT;

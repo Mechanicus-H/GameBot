@@ -20,18 +20,18 @@
 
 struct Action
 {
-    ACTION type;
-    QPoint target;
-    QPoint begin;
-    QString text;
-    int delay;
-    int modifier;
+    ACTION type;    // Тип действия
+    QPoint target;  // Целевая точка
+    QPoint begin;   // Точка начала действия
+    QString text;   // Если нужно ввести текст/нажать клавишу
+    int delay;      // Задержка в милисекундах
+    int modifier;   // модификаторы (CTRL/Alt...). Сохраняются как Qt::Modifier
 };
 
 // Utilites
 
-QString toString(const Action& act);
-Action fromString(const QString& str);
-QPoint pointFromString(const QString& str);
+QString toString(const Action& act);        // Action в строку. Для сохранения в файл/вывода в терминал
+Action fromString(const QString& str);      // Из строки. Чтение из файла/терминала.
+QPoint pointFromString(const QString& str); // QPoint из строки вида (xxx,yyy) , предполагаются int'ы
 
 #endif // ACTION_H
