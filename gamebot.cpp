@@ -313,24 +313,26 @@ void GameBot::slotExecuteAction()
     else if(act.type==ACTION_LEFTCLICK)
     {
         moveTo(act.target);
+        Sleep(10);
         mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP,
                     act.target.x(), act.target.y(), 0, 0);
     }
     else if(act.type==ACTION_RIGHTCLICK)
     {
         moveTo(act.target);
+        Sleep(10);
         mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP,
                     act.target.x(), act.target.y(), 0, 0);
     }
     else if(act.type==ACTION_DRAG)
     {
         moveTo(act.begin);
-        Sleep(2);
+        Sleep(50);
         mouse_event(MOUSEEVENTF_LEFTDOWN,
                     act.begin.x(), act.begin.y(), 0, 0);
-
+        Sleep(25);
         moveTo(act.target);
-        Sleep(2);
+        Sleep(50);
         mouse_event(MOUSEEVENTF_LEFTUP,
                     act.target.x(), act.target.y(), 0, 0);
     }

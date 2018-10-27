@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = GameBot
 TEMPLATE = app
 
+CONFIG += c++11 c++14
 
 SOURCES += main.cpp\
         gamebot.cpp \
@@ -18,3 +19,6 @@ SOURCES += main.cpp\
 
 HEADERS  += gamebot.h \
     action.h
+
+RC_FILE += \
+    resources.rc
