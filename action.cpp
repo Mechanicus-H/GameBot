@@ -49,10 +49,9 @@ QString toString(const Action &act)
 
     switch (act.modifier)
     {
-    case Qt::Key_Alt: result+="Alt"; break;
-    case Qt::Key_Control: result+="Ctrl"; break;
-    case Qt::Key_Shift: result+="Shift"; break;
-    case Qt::Key_AltGr: result+="Ctrl+Alt"; break;
+    case Qt::AltModifier: result+="Alt"; break;
+    case Qt::ControlModifier: result+="Ctrl"; break;
+    case Qt::ShiftModifier: result+="Shift"; break;
     default: result+="None"; break;
     }
     result+="\n}\n";
@@ -100,10 +99,9 @@ Action fromString(const QString& str)
     workString=list[6];
     workList=workString.split(' ');
 //    qDebug() << workList[1];
-    if(std::count(workList.begin(), workList.end(), "Alt")) result.modifier=Qt::Key_Alt;
-    else if(std::count(workList.begin(), workList.end(), "Ctrl")) result.modifier=Qt::Key_Control;
-    else if(std::count(workList.begin(), workList.end(), "Shift")) result.modifier=Qt::Key_Shift;
-    else if(std::count(workList.begin(), workList.end(), "Ctrl+Alt")) result.modifier=Qt::Key_AltGr;
+    if(std::count(workList.begin(), workList.end(), "Alt")) result.modifier=Qt::AltModifier;
+    else if(std::count(workList.begin(), workList.end(), "Ctrl")) result.modifier=Qt::ControlModifier;
+    else if(std::count(workList.begin(), workList.end(), "Shift")) result.modifier=Qt::ShiftModifier;
 
     return result;
 }

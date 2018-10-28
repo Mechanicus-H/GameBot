@@ -23,9 +23,10 @@ struct Action
     ACTION type;    // Тип действия
     QPoint target;  // Целевая точка
     QPoint begin;   // Точка начала действия
-    QString text;   // Если нужно ввести текст/нажать клавишу
+    QString text;   // Если нужно ввести текст
+    Qt::Key key;        // Если нужно нажать клавишу
     int delay;      // Задержка в милисекундах
-    int modifier;   // модификаторы (CTRL/Alt...). Сохраняются как Qt::Modifier
+    Qt::KeyboardModifiers modifier;   // модификаторы (CTRL/Alt...). Сохраняются как Qt::Modifier
 };
 
 // Utilites

@@ -24,9 +24,12 @@ private:
     QPushButton *startProgram;
     QPushButton *saveProgram;
     QPushButton *loadProgram;
+    QLabel *modifs;
 
     bool isRecord;
     bool isExec;
+
+    Qt::KeyboardModifiers modif;
 
     int curentAction;
 
@@ -44,6 +47,10 @@ public:
     void computeTotalSec();
     void saveToFile(const QString& fileName);
     void loadFromFile(const QString& fileName);
+    void setModif(Action& act);
+    void updateModifInfo();
+    void pressModif(const Action& act);
+    void releaseModif(const Action& act);
 
 public slots:
     void slotShowMouseState();

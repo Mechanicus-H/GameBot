@@ -3,6 +3,8 @@
 GameBot::GameBot(QWidget *parent)
     : QWidget(parent)
 {
+    modif=Qt::NoModifier;
+
     isRecord=false;
     isExec=false;
     startTimer(2);
@@ -12,6 +14,8 @@ GameBot::GameBot(QWidget *parent)
     resize(300, 75);
     setWindowFlags(Qt::WindowStaysOnTopHint);
 
+    modifs=new QLabel;
+    updateModifInfo();
 
     lblX=new QLabel;
     lblY=new QLabel;
@@ -54,6 +58,7 @@ GameBot::GameBot(QWidget *parent)
     Vbox->addLayout(line1);
     Vbox->addLayout(line2);
     Vbox->addLayout(line3);
+    Vbox->addWidget(modifs);
 
     Vbox->addWidget(startProgram);
     Vbox->addWidget(systemConsole);
@@ -99,6 +104,9 @@ void GameBot::timerEvent(QTimerEvent *te)
 //-----------------------------------------------
 void GameBot::keyPressEvent(QKeyEvent *ke)
 {
+
+    Action act;
+
     if(isExec)
     {
         if(ke->key()==Qt::Key_F8)
@@ -111,46 +119,45 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
 
     if(isRecord)
     {
-
         int ms= timer;
         timer=0;
 
         if(ke->key()==Qt::Key_7) // Left
         {
-            Action act;
             act.type=ACTION_LEFTCLICK;
             act.delay=ms;
             act.target=cursorPosition;
+            act.modifier=modif;
             program.push_back(act);
 
             systemConsole->append(createMessage(act));
         }
         else if(ke->key()==Qt::Key_9) // Right
         {
-            Action act;
             act.type=ACTION_RIGHTCLICK;
             act.delay=ms;
             act.target=cursorPosition;
+            act.modifier=modif;
             program.push_back(act);
 
             systemConsole->append(createMessage(act));
         }
         else if(ke->key()==Qt::Key_8) // Move to
         {
-            Action act;
             act.type=ACTION_MOVETO;
             act.delay=ms;
             act.target=cursorPosition;
+            act.modifier=modif;
             program.push_back(act);
 
             systemConsole->append(createMessage(act));
         }
         else if(ke->key()==Qt::Key_4) // Start drag
         {
-            Action act;
             act.type=ACTION_DRAG;
             act.delay=ms;
             act.begin=cursorPosition;
+            act.modifier=modif;
             program.push_back(act);
         }
         else if(ke->key()==Qt::Key_6)
@@ -161,10 +168,39 @@ void GameBot::keyPressEvent(QKeyEvent *ke)
                 systemConsole->append(createMessage(program.last()));
             }
         }
+        else if(ke->key()==Qt::Key_Shift)
+        {
+            if(modif!=Qt::ShiftModifier) modif=Qt::ShiftModifier;
+            else modif=Qt::NoModifier;
+        }
+        else if(ke->key()==Qt::Key_Control)
+        {
+            if(modif!=Qt::ControlModifier) modif=Qt::ControlModifier;
+            else modif=Qt::NoModifier;
+        }
+        else if(ke->key()==Qt::Key_Alt)
+        {
+            if(modif!=Qt::AltModifier) modif=Qt::AltModifier;
+            else modif=Qt::NoModifier;
+        }
+        updateModifInfo();
+
+
+//        qDebug() << toString(act);
         computeTotalSec();
-
-
     }
+}
+//-----------------------------------------------
+void GameBot::updateModifInfo()
+{
+    QString result="Active modifier: ";
+
+    if(modif==Qt::NoModifier) result+="None";
+    else if(modif==Qt::AltModifier) result+="Alt";
+    else if(modif==Qt::ControlModifier) result+="Ctrl";
+    else if(modif==Qt::ShiftModifier) result+="Shift";
+
+    modifs->setText(result);
 }
 //-----------------------------------------------
 void GameBot::moveTo(const QPoint &targ)
@@ -229,7 +265,34 @@ void GameBot::loadFromFile(const QString &fileName)
                 );
     slotSetStatus();
 }
+//-----------------------------------------------
+void GameBot::pressModif(const Action& act)
+{
+    if(act.modifier==Qt::NoModifier) return;
 
+    switch (act.modifier)
+    {
+    case Qt::ControlModifier: keybd_event(VK_CONTROL, 0x9d, 0, 0); break;
+    case Qt::AltModifier: keybd_event(VK_SHIFT, 0xaa, 0, 0); break;
+    case Qt::ShiftModifier: keybd_event(VK_MENU, 0xb8, 0, 0); break;
+    }
+    Sleep(50);
+
+}
+//-----------------------------------------------
+void GameBot::releaseModif(const Action& act)
+{
+    if(act.modifier==Qt::NoModifier) return;
+
+    switch (act.modifier)
+    {
+    case Qt::ControlModifier: keybd_event(VK_CONTROL, 0x9d, KEYEVENTF_KEYUP, 0); break;
+    case Qt::AltModifier: keybd_event(VK_SHIFT, 0xaa, KEYEVENTF_KEYUP, 0); break;
+    case Qt::ShiftModifier: keybd_event(VK_MENU, 0xb8, KEYEVENTF_KEYUP, 0); break;
+    }
+    Sleep(50);
+
+}
 //===============================================
 // SLOTS
 //-----------------------------------------------
@@ -302,6 +365,9 @@ void GameBot::slotShowMouseState()
 //-----------------------------------------------
 void GameBot::slotExecuteAction()
 {
+    const int del=50; // задержка после/перед действием
+                      // клиент игр обычно подтормаживает пока сообразит что клавиша нажата
+
     if(isExec==false) return;
 
     Action act=program.at(curentAction);
@@ -312,30 +378,41 @@ void GameBot::slotExecuteAction()
     }
     else if(act.type==ACTION_LEFTCLICK)
     {
+        pressModif(act);
         moveTo(act.target);
-        Sleep(10);
-        mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP,
+        Sleep(del);
+        mouse_event(MOUSEEVENTF_LEFTDOWN,
                     act.target.x(), act.target.y(), 0, 0);
+        Sleep(del/2);
+        mouse_event(MOUSEEVENTF_LEFTUP,
+                    act.target.x(), act.target.y(), 0, 0);
+        releaseModif(act);
     }
     else if(act.type==ACTION_RIGHTCLICK)
     {
+        pressModif(act);
         moveTo(act.target);
-        Sleep(10);
-        mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP,
+        Sleep(del);
+        mouse_event(MOUSEEVENTF_RIGHTDOWN,
                     act.target.x(), act.target.y(), 0, 0);
+        Sleep(del/2);
+        mouse_event(MOUSEEVENTF_RIGHTUP,
+                    act.target.x(), act.target.y(), 0, 0);
+        releaseModif(act);
     }
     else if(act.type==ACTION_DRAG)
     {
         moveTo(act.begin);
-        Sleep(50);
+        Sleep(del);
         mouse_event(MOUSEEVENTF_LEFTDOWN,
                     act.begin.x(), act.begin.y(), 0, 0);
-        Sleep(25);
+        Sleep(del/2);
         moveTo(act.target);
-        Sleep(50);
+        Sleep(del);
         mouse_event(MOUSEEVENTF_LEFTUP,
                     act.target.x(), act.target.y(), 0, 0);
     }
+
     if(curentAction==program.size()-1)
     {
         curentAction=0;
@@ -344,6 +421,9 @@ void GameBot::slotExecuteAction()
     }
     else curentAction++;
     actionDelayTimer->singleShot(program.at(curentAction).delay, this, SLOT(slotExecuteAction()));
+
+
+
 }
 //-----------------------------------------------
 void GameBot::slotSave()
